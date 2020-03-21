@@ -60,16 +60,11 @@ defmodule NanoRepo.CLITest do
       # new release
 
       File.cd!("pkg", fn ->
-        File.write!("mix.exs", mix_exs(:acme, "1.1.0", [{:hex_core, "~> 1.0"}]))
+        File.write!("mix.exs", mix_exs(:acme_core, "1.1.0", [{:hex_core, "~> 1.0"}]))
         0 = Mix.shell().cmd("mix hex.build")
       end)
 
-      File.cp!(
-        Path.join(["pkg", "acme-1.1.0.tar"]),
-        NanoRepo.tarball_path("acme", "acme_core", "1.1.0")
-      )
-
-      CLI.main(~w(rebuild acme))
+      CLI.main(~w(publish acme pkg/acme_core-1.1.0.tar))
       {:ok, {200, _, names}} = :hex_repo.get_names(config)
       assert [%{name: "acme_core"}] = names
       {:ok, {200, _, versions}} = :hex_repo.get_versions(config)
@@ -85,12 +80,7 @@ defmodule NanoRepo.CLITest do
         0 = Mix.shell().cmd("mix hex.build")
       end)
 
-      File.cp!(
-        Path.join(["pkg", "acme-1.1.0.tar"]),
-        NanoRepo.tarball_path("acme", "acme_ui", "2.5.0")
-      )
-
-      CLI.main(~w(rebuild acme))
+      CLI.main(~w(publish acme pkg/acme_ui-2.5.0.tar))
       {:ok, {200, _, names}} = :hex_repo.get_names(config)
       assert [%{name: "acme_core"}, %{name: "acme_ui"}] = names
       {:ok, {200, _, versions}} = :hex_repo.get_versions(config)
