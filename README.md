@@ -10,43 +10,45 @@ Install with:
 
 Command line usage:
 
-    $ nanorepo help
-    nanorepo init REPO
+    $ nanorepo
+    Usage:
 
-      Prepares repository hosting for REPO in the current directory.
-      You may initialize multiple different repositories in the same base directory.
+      nanorepo init REPO
 
-    nanorepo init.mirror REPO hexpm
+        Prepares repository hosting for REPO in the current directory.
+        You may initialize multiple different repositories in the same base directory.
 
-      Prepares mirror for hex.pm as REPO in the current directory.
+      nanorepo init.mirror REPO hexpm
 
-    nanorepo init.mirror REPO MIRROR_REPO_NAME MIRROR_URL MIRROR_PUBLIC_KEY_PATH
+        Prepares mirror for hex.pm as REPO in the current directory.
 
-      Prepares mirror for MIRROR_REPO_NAME as REPO in the current directory.
+      nanorepo init.mirror REPO MIRROR_REPO_NAME MIRROR_URL MIRROR_PUBLIC_KEY_PATH
 
-      A mirror is a read-through cache for the given MIRROR_URL. `nanorepo init.mirror`
-      just fetches and stores `/names` and `/versions` registry index files,
-      all the other files would be read on-demand. To enable the read-through cache,
-      pass `--mirror` to `nanorepo serve`.
+        Prepares mirror for MIRROR_REPO_NAME as REPO in the current directory.
 
-    nanorepo publish REPO TARBALL_PATH
+        A mirror is a read-through cache for the given MIRROR_URL. `nanorepo init.mirror`
+        just fetches and stores `/names` and `/versions` registry index files,
+        all the other files would be read on-demand. To enable the read-through cache,
+        pass `--mirror` to `nanorepo serve`.
 
-      Publishes TARBALL_PATH to REPO.
+      nanorepo publish REPO TARBALL_PATH
 
-    nanorepo rebuild REPO
+        Publishes TARBALL_PATH to REPO.
 
-      Rebuilds the given REPO from it's stored tarballs.
+      nanorepo rebuild REPO
 
-    nanorepo serve [--port PORT --mirror MIRROR]
+        Rebuilds the given REPO from it's stored tarballs.
 
-      Serves files stored in `public/` for repositories initialized in the current
-      directory.
+      nanorepo serve [--port PORT --mirror MIRROR]
 
-      Options:
+        Serves files stored in `public/` for repositories initialized in the current
+        directory.
 
-        * `--port` - defaults to 4000.
-        * `--mirror` - the name of the mirror that was initialized with `init.mirror`.
-          This option may be given multiple times to support multiple mirrors.
+        Options:
+
+          * `--port` - defaults to 4000.
+          * `--mirror` - the name of the mirror that was initialized with `init.mirror`.
+            This option may be given multiple times to support multiple mirrors.
 
 ### Example 1: Create a private repo, add a package, and use it from a Mix project
 
