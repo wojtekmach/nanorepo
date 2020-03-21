@@ -2,20 +2,7 @@ defmodule NanoRepo do
   import NanoRepo.Utils
 
   def init(repo_name) do
-    {private_key, public_key} = generate_keys()
-    write_file!(private_key_path(repo_name), private_key)
-    write_file!(public_key_path(repo_name), public_key)
-
-    registry = %NanoRepo.Registry{
-      name: repo_name,
-      public_key: public_key,
-      private_key: private_key
-    }
-
-    mkdir!(["public", repo_name, "tarballs"])
-    mkdir!(["public", repo_name, "packages"])
-    write_file!(names_path(repo_name), NanoRepo.Registry.build_names(registry, []))
-    write_file!(versions_path(repo_name), NanoRepo.Registry.build_versions(registry, []))
+    init_repo(repo_name)
   end
 
   def init_mirror(repo_name, "hexpm") do
@@ -118,6 +105,23 @@ defmodule NanoRepo do
     end
   end
 
+  def private_key_path(repo_name), do: repo_name <> "_private_key.pem"
+
+  def public_key_path(repo_name), do: repo_name <> "_public_key.pem"
+
+  def mirror_url_path(repo_name), do: repo_name <> "_mirror.url"
+
+  def names_path(repo_name), do: ["public", repo_name, "names"]
+
+  def versions_path(repo_name), do: ["public", repo_name, "versions"]
+
+  def package_path(repo_name, name), do: ["public", repo_name, "packages", name]
+
+  def tarballs_path(repo_name), do: ["public", repo_name, "tarballs"]
+
+  def tarball_path(repo_name, name, version),
+    do: path([tarballs_path(repo_name), "#{name}-#{version}.tar"])
+
   defp init_mirror(repo_name, mirror_name, mirror_url, mirror_public_key) do
     write_file!(public_key_path(repo_name), mirror_public_key)
     write_file!(mirror_url_path(repo_name), mirror_url)
@@ -136,30 +140,33 @@ defmodule NanoRepo do
 
     {:ok, {200, _, names}} = http_get(config, mirror_url <> "/names")
     {:ok, _} = NanoRepo.Registry.unpack_names(mirror_registry, names)
-    write_file!(names_path(repo_name), names)
 
     {:ok, {200, _, versions}} = http_get(config, mirror_url <> "/versions")
     {:ok, _} = NanoRepo.Registry.unpack_names(mirror_registry, versions)
-    write_file!(versions_path(repo_name), versions)
 
-    mkdir!(["public", repo_name, "tarballs"])
-    mkdir!(["public", repo_name, "packages"])
+    init_repo(mirror_registry, names, versions)
   end
 
-  def private_key_path(repo_name), do: repo_name <> "_private_key.pem"
+  defp init_repo(repo_name) do
+    {private_key, public_key} = generate_keys()
+    write_file!(private_key_path(repo_name), private_key)
+    write_file!(public_key_path(repo_name), public_key)
 
-  def public_key_path(repo_name), do: repo_name <> "_public_key.pem"
+    registry = %NanoRepo.Registry{
+      name: repo_name,
+      public_key: public_key,
+      private_key: private_key
+    }
 
-  def mirror_url_path(repo_name), do: repo_name <> "_mirror.url"
+    names = NanoRepo.Registry.build_names(registry, [])
+    versions = NanoRepo.Registry.build_versions(registry, [])
+    init_repo(registry, names, versions)
+  end
 
-  def names_path(repo_name), do: ["public", repo_name, "names"]
-
-  def versions_path(repo_name), do: ["public", repo_name, "versions"]
-
-  def package_path(repo_name, name), do: ["public", repo_name, "packages", name]
-
-  def tarballs_path(repo_name), do: ["public", repo_name, "tarballs"]
-
-  def tarball_path(repo_name, name, version),
-    do: path([tarballs_path(repo_name), "#{name}-#{version}.tar"])
+  defp init_repo(registry, names, versions) do
+    mkdir!(["public", registry.name, "tarballs"])
+    mkdir!(["public", registry.name, "packages"])
+    write_file!(names_path(registry.name), names)
+    write_file!(versions_path(registry.name), versions)
+  end
 end
