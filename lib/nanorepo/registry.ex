@@ -11,8 +11,7 @@ defmodule NanoRepo.Registry do
 
   def unpack_names(registry, gzipped) do
     with {:ok, payload} <- gunzip_signed(gzipped, registry.public_key) do
-      # TODO: verify!
-      :hex_registry.decode_names(payload, :no_verify)
+      :hex_registry.decode_names(payload, registry.name)
     end
   end
 

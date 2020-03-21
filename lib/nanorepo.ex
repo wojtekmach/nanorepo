@@ -22,11 +22,14 @@ defmodule NanoRepo do
     endpoint = Plug.Cowboy.child_spec(scheme: :http, plug: plug, options: [port: port])
     {:ok, pid} = Supervisor.start_link([endpoint], strategy: :one_for_one)
 
-    for mirror_name <- Keyword.get_values(opts, :mirror) do
-      public_key = public_key_path(mirror_name) |> File.read!()
+    for path <- mirror_config_paths() do
+      repo_name = Path.basename(path, ".mirror.exs")
+      config = Config.Reader.read!(path) |> Keyword.fetch!(:mirror)
+      mirror_name = Keyword.fetch!(config, :name)
+      mirror_url = Keyword.fetch!(config, :url)
+      public_key = public_key_path(repo_name) |> File.read!()
       registry = %NanoRepo.Registry{name: mirror_name, public_key: public_key}
-      url = mirror_url_path(mirror_name) |> File.read!() |> String.trim()
-      NanoRepo.Mirrors.register(name: mirror_name, url: url, registry: registry)
+      NanoRepo.Mirrors.register(name: repo_name, url: mirror_url, registry: registry)
     end
 
     {:ok, pid}
@@ -109,7 +112,9 @@ defmodule NanoRepo do
 
   def public_key_path(repo_name), do: repo_name <> "_public_key.pem"
 
-  def mirror_url_path(repo_name), do: repo_name <> "_mirror.url"
+  def mirror_config_paths(), do: Path.wildcard("*.mirror.exs")
+
+  def mirror_config_path(repo_name), do: repo_name <> ".mirror.exs"
 
   def names_path(repo_name), do: ["public", repo_name, "names"]
 
@@ -124,10 +129,15 @@ defmodule NanoRepo do
 
   defp init_mirror(repo_name, mirror_name, mirror_url, mirror_public_key) do
     write_file!(public_key_path(repo_name), mirror_public_key)
-    write_file!(mirror_url_path(repo_name), mirror_url)
+    write_file!(mirror_config_path(repo_name), build_mirror_config(mirror_name, mirror_url))
+
+    registry = %NanoRepo.Registry{
+      name: repo_name,
+      public_key: mirror_public_key
+    }
 
     mirror_registry = %NanoRepo.Registry{
-      name: repo_name,
+      name: mirror_name,
       public_key: mirror_public_key
     }
 
@@ -144,7 +154,7 @@ defmodule NanoRepo do
     {:ok, {200, _, versions}} = http_get(config, mirror_url <> "/versions")
     {:ok, _} = NanoRepo.Registry.unpack_names(mirror_registry, versions)
 
-    init_repo(mirror_registry, names, versions)
+    init_repo(registry, names, versions)
   end
 
   defp init_repo(repo_name) do
@@ -168,5 +178,15 @@ defmodule NanoRepo do
     mkdir!(["public", registry.name, "packages"])
     write_file!(names_path(registry.name), names)
     write_file!(versions_path(registry.name), versions)
+  end
+
+  defp build_mirror_config(name, url) do
+    """
+    import Config
+
+    config :mirror,
+      name: #{inspect(name)},
+      url: #{inspect(url)}
+    """
   end
 end

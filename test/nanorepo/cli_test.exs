@@ -91,14 +91,12 @@ defmodule NanoRepo.CLITest do
 
       # init.mirror
 
-      # CLI.main(~w(init.mirror mymirror hexpm))
-      File.write!("pub.pem", :hex_core.default_config().repo_public_key)
-      CLI.main(~w(init.mirror mymirror hexpm https://repo.hex.pm pub.pem))
+      CLI.main(~w(init.mirror mymirror hexpm))
 
       :ok = Application.stop(:ranch)
       :ok = Application.start(:ranch)
 
-      {:ok, _} = Task.start_link(fn -> CLI.main(~w(serve --port 4002 --mirror mymirror)) end)
+      {:ok, _} = Task.start_link(fn -> CLI.main(~w(serve --port 4002)) end)
 
       mirror_config = %{
         :hex_core.default_config()
