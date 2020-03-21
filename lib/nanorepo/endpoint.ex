@@ -8,8 +8,9 @@ defmodule NanoRepo.Endpoint do
   plug :match
   plug :dispatch
 
-  get "/:mirror_name/tarballs/:name_version_tar" do
-    case NanoRepo.Mirrors.get_tarball(mirror_name, name_version_tar) do
+  get "/:mirror_name/tarballs/:path" do
+    {name, version} = NanoRepo.Utils.parse_tarball_path(path)
+    case NanoRepo.Mirrors.get_tarball(mirror_name, name, version) do
       {:ok, tarball} -> send_resp(conn, 200, tarball)
       :error -> send_resp(conn, 404, "not found")
     end

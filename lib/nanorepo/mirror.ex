@@ -21,7 +21,7 @@ defmodule NanoRepo.Mirrors do
     Agent.get(@name, &Map.fetch(&1, name))
   end
 
-  def get_tarball(mirror_name, {name, version}) do
+  def get_tarball(mirror_name, name, version) do
     with {:ok, mirror} <- fetch(mirror_name),
          {:ok, {200, _, tarball}} <- :hex_repo.get_tarball(config(mirror), name, version) do
       File.write!(
@@ -34,10 +34,6 @@ defmodule NanoRepo.Mirrors do
       _ ->
         :error
     end
-  end
-
-  def get_tarball(mirror_name, name_version_tar) do
-    get_tarball(mirror_name, NanoRepo.Utils.parse_tarball_path(name_version_tar))
   end
 
   defp config(mirror) do
