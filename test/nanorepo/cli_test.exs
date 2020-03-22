@@ -2,14 +2,6 @@ defmodule NanoRepo.CLITest do
   use ExUnit.Case, async: true
   alias NanoRepo.CLI
 
-  defmodule Foo do
-    def init(opts), do: opts
-
-    def call(conn, _) do
-      Plug.Conn.send_resp(conn, 200, "foo")
-    end
-  end
-
   test "nanorepo" do
     Logger.configure(level: :warn)
     File.rm_rf!("tmp")

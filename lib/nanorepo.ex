@@ -2,7 +2,7 @@ defmodule NanoRepo do
   import NanoRepo.Utils
 
   def init(repo_name) do
-    {private_key, public_key} = generate_keys()
+    {private_key, public_key} = NanoRepo.Registry.generate_random_keys()
     write_file!(private_key_path(repo_name), private_key)
     write_file!(public_key_path(repo_name), public_key)
 
