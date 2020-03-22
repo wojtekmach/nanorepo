@@ -24,11 +24,7 @@ defmodule NanoRepo.Mirrors do
   def get_tarball(mirror_name, name, version) do
     with {:ok, mirror} <- fetch(mirror_name),
          {:ok, {200, _, tarball}} <- :hex_repo.get_tarball(config(mirror), name, version) do
-      File.write!(
-        Path.join(["public", mirror_name, "tarballs", "#{name}-#{version}.tar"]),
-        tarball
-      )
-
+      File.write!(NanoRepo.tarball_path(mirror_name, name, version), tarball)
       {:ok, tarball}
     else
       _ ->

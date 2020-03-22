@@ -22,8 +22,8 @@ defmodule NanoRepo.CLI do
       ["rebuild", repo_name] ->
         NanoRepo.rebuild(repo_name)
 
-      ["serve"] ->
-        NanoRepo.start_endpoint(opts)
+      ["server"] ->
+        NanoRepo.start_server(opts)
         Process.sleep(:infinity)
 
       ["help"] ->
@@ -64,7 +64,7 @@ defmodule NanoRepo.CLI do
 
         Rebuilds the given REPO from it's stored tarballs.
 
-      nanorepo serve [--port PORT]
+      nanorepo server [--port PORT]
 
         Serves files stored in `public/` for repositories and mirrors initialized in the current
         directory.

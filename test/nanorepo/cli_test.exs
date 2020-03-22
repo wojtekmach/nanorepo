@@ -2,6 +2,14 @@ defmodule NanoRepo.CLITest do
   use ExUnit.Case, async: true
   alias NanoRepo.CLI
 
+  defmodule Foo do
+    def init(opts), do: opts
+
+    def call(conn, _) do
+      Plug.Conn.send_resp(conn, 200, "foo")
+    end
+  end
+
   test "nanorepo" do
     Logger.configure(level: :warn)
     File.rm_rf!("tmp")
@@ -12,9 +20,9 @@ defmodule NanoRepo.CLITest do
 
       CLI.main(~w(init acme))
 
-      # serve
+      # server
 
-      {:ok, _} = Task.start_link(fn -> CLI.main(~w(serve --port 4001)) end)
+      {:ok, _} = start_server(port: 4001)
 
       config = %{
         :hex_core.default_config()
@@ -91,23 +99,26 @@ defmodule NanoRepo.CLITest do
 
       # init.mirror
 
-      CLI.main(~w(init.mirror mymirror hexpm))
-
       :ok = Application.stop(:ranch)
       :ok = Application.start(:ranch)
+      plug = {Plug.Static, at: "/", from: "public"}
+      start_supervised!({Plug.Cowboy, scheme: :http, port: 4002, plug: plug})
 
-      {:ok, _} = Task.start_link(fn -> CLI.main(~w(serve --port 4002)) end)
+      CLI.main(~w(init.mirror mymirror acme http://localhost:4002/acme acme_public_key.pem))
+
+      {:ok, _} = start_server(port: 4003)
 
       mirror_config = %{
         :hex_core.default_config()
-        | repo_name: "hexpm",
-          repo_url: "http://localhost:4002/mymirror"
+        | repo_name: "acme",
+          repo_public_key: File.read!("mymirror_public_key.pem"),
+          repo_url: "http://localhost:4003/mymirror"
       }
 
       {:ok, {200, _, names}} = :hex_repo.get_names(mirror_config)
-      assert %{name: "decimal"} in names
-      {:ok, {200, _, tarball}} = :hex_repo.get_tarball(mirror_config, "decimal", "1.0.0")
-      {:ok, %{metadata: %{"name" => "decimal"}}} = :hex_tarball.unpack(tarball, :memory)
+      assert %{name: "acme_core"} in names
+      {:ok, {200, _, tarball}} = :hex_repo.get_tarball(mirror_config, "acme_core", "1.0.0")
+      {:ok, %{metadata: %{"name" => "acme_core"}}} = :hex_tarball.unpack(tarball, :memory)
     end)
   end
 
@@ -130,5 +141,19 @@ defmodule NanoRepo.CLITest do
       end
     end
     """
+  end
+
+  defp start_server(opts) do
+    self = self()
+
+    {:ok, task_pid} =
+      Task.start_link(fn ->
+        NanoRepo.start_server(opts)
+        send(self, :started)
+        Process.sleep(:infinity)
+      end)
+
+    assert_receive :started
+    {:ok, task_pid}
   end
 end

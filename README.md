@@ -38,7 +38,7 @@ Command line usage:
 
         Rebuilds the given REPO from it's stored tarballs.
 
-      nanorepo serve [--port PORT]
+      nanorepo server [--port PORT]
 
         Serves files stored in `public/` for repositories and mirrors initialized in the current
         directory.

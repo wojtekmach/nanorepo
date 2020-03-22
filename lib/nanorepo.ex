@@ -15,13 +15,7 @@ defmodule NanoRepo do
     init_mirror(repo_name, mirror_repo_name, mirror_url, mirror_public_key)
   end
 
-  def start_endpoint(opts) do
-    port = Keyword.get(opts, :port, 4000)
-    IO.puts([IO.ANSI.blue(), "* serving", " ./public on port #{port}", IO.ANSI.reset()])
-    plug = NanoRepo.Endpoint
-    endpoint = Plug.Cowboy.child_spec(scheme: :http, plug: plug, options: [port: port])
-    {:ok, pid} = Supervisor.start_link([endpoint], strategy: :one_for_one)
-
+  def start_server(opts) do
     for path <- mirror_config_paths() do
       repo_name = Path.basename(path, ".mirror.exs")
       config = Config.Reader.read!(path) |> Keyword.fetch!(:mirror)
@@ -32,7 +26,11 @@ defmodule NanoRepo do
       NanoRepo.Mirrors.register(name: repo_name, url: mirror_url, registry: registry)
     end
 
-    {:ok, pid}
+    port = Keyword.get(opts, :port, 4000)
+    IO.puts([IO.ANSI.blue(), "* serving", " ./public on port #{port}", IO.ANSI.reset()])
+    plug = NanoRepo.Endpoint
+    endpoint = Plug.Cowboy.child_spec(scheme: :http, plug: plug, options: [port: port])
+    Supervisor.start_link([endpoint], strategy: :one_for_one)
   end
 
   def publish(repo_name, tarball_path) do
