@@ -96,29 +96,6 @@ defmodule NanoRepo.CLITest do
       {:ok, {200, _, package}} = :hex_repo.get_package(config, "acme_ui")
       assert [%{version: "2.5.0"}] = package
       {:ok, {200, _, _}} = :hex_repo.get_tarball(config, "acme_ui", "2.5.0")
-
-      # init.mirror
-
-      :ok = Application.stop(:ranch)
-      :ok = Application.start(:ranch)
-      plug = {Plug.Static, at: "/", from: "public"}
-      start_supervised!({Plug.Cowboy, scheme: :http, port: 4002, plug: plug})
-
-      CLI.main(~w(init.mirror mymirror acme http://localhost:4002/acme acme_public_key.pem))
-
-      {:ok, _} = start_server(port: 4003)
-
-      mirror_config = %{
-        :hex_core.default_config()
-        | repo_name: "acme",
-          repo_public_key: File.read!("mymirror_public_key.pem"),
-          repo_url: "http://localhost:4003/mymirror"
-      }
-
-      {:ok, {200, _, names}} = :hex_repo.get_names(mirror_config)
-      assert %{name: "acme_core"} in names
-      {:ok, {200, _, tarball}} = :hex_repo.get_tarball(mirror_config, "acme_core", "1.0.0")
-      {:ok, %{metadata: %{"name" => "acme_core"}}} = :hex_tarball.unpack(tarball, :memory)
     end)
   end
 

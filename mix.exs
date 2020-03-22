@@ -14,8 +14,7 @@ defmodule NanoRepo.MixProject do
 
   def application do
     [
-      extra_applications: [:public_key, :inets, :ssl],
-      mod: {NanoRepo.Application, []}
+      extra_applications: [:public_key]
     ]
   end
 

@@ -18,18 +18,6 @@ Command line usage:
         Prepares repository hosting for REPO in the current directory.
         You may initialize multiple different repositories in the same base directory.
 
-      nanorepo init.mirror REPO hexpm
-
-        Prepares mirror for hex.pm as REPO in the current directory.
-
-      nanorepo init.mirror REPO MIRROR_REPO_NAME MIRROR_URL MIRROR_PUBLIC_KEY_PATH
-
-        Prepares mirror for MIRROR_REPO_NAME as REPO in the current directory.
-
-        A mirror is a read-through cache for the given MIRROR_URL. `nanorepo init.mirror` creates
-        a `*.mirror.exs` mirror configuration file as well as fetches and stores `/names` and
-        `/versions` registry index files, all the other files would be read on-demand.
-
       nanorepo publish REPO TARBALL_PATH
 
         Publishes TARBALL_PATH to REPO.
@@ -40,8 +28,7 @@ Command line usage:
 
       nanorepo server [--port PORT]
 
-        Serves files stored in `public/` for repositories and mirrors initialized in the current
-        directory.
+        Serves files stored in `public/` of the current directory.
 
         Options:
 
@@ -147,14 +134,6 @@ Finally, set up nanorepo, publish a package, and sync the repo with S3
     $ nanorepo init acme
     $ curl -O https://repo.hex.pm/tarballs/hex_core-0.6.8.tar
     $ aws s3 sync public/acme s3://nanorepo
-
-### Example 4: Create a Hex.pm mirror
-
-    $ mkdir playground
-    $ cd playground
-    $ nanorepo init.mirror mymirror hexpm
-    $ nanorepo server --mirror mymirror
-    $ curl -O http://localhost:4000/mymirror/tarballs/hex_core-0.6.8.tar
 
 ## License
 

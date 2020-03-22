@@ -10,12 +10,6 @@ defmodule NanoRepo.CLI do
       ["init", repo_name] ->
         NanoRepo.init(repo_name)
 
-      ["init.mirror", repo_name, "hexpm"] ->
-        NanoRepo.init_mirror(repo_name, "hexpm")
-
-      ["init.mirror", repo_name, mirror_repo_name, mirror_url, mirror_public_key_path] ->
-        NanoRepo.init_mirror(repo_name, {mirror_repo_name, mirror_url, mirror_public_key_path})
-
       ["publish", repo_name, tarball_path] ->
         NanoRepo.publish(repo_name, tarball_path)
 
@@ -44,18 +38,6 @@ defmodule NanoRepo.CLI do
         Prepares repository hosting for REPO in the current directory.
         You may initialize multiple different repositories in the same base directory.
 
-      nanorepo init.mirror REPO hexpm
-
-        Prepares mirror for hex.pm as REPO in the current directory.
-
-      nanorepo init.mirror REPO MIRROR_REPO_NAME MIRROR_URL MIRROR_PUBLIC_KEY_PATH
-
-        Prepares mirror for MIRROR_REPO_NAME as REPO in the current directory.
-
-        A mirror is a read-through cache for the given MIRROR_URL. `nanorepo init.mirror` creates
-        a `*.mirror.exs` mirror configuration file as well as fetches and stores `/names` and
-        `/versions` registry index files, all the other files would be read on-demand.
-
       nanorepo publish REPO TARBALL_PATH
 
         Publishes TARBALL_PATH to REPO.
@@ -66,8 +48,7 @@ defmodule NanoRepo.CLI do
 
       nanorepo server [--port PORT]
 
-        Serves files stored in `public/` for repositories and mirrors initialized in the current
-        directory.
+        Serves files stored in `public/` of the current directory.
 
         Options:
 
